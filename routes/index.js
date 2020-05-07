@@ -6,7 +6,7 @@ var upload = multer({ dest: '/tmp/'});
 path = require('path');
 
 router.get('/', function(req, res, next) {
-  res.render('http_se', { title: 'HTTP RECEIVER' , message : 'This is message'});
+  res.render('index', { title: 'HTTP RECEIVER' , message : 'This is message'});
 });
 
 router.post('/post', upload.single('file'), function(req, res) {
