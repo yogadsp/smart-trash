@@ -26,7 +26,7 @@ router.post('/post', upload.single('file'), function(req, res) {
 
 router.get('/listphotos', function(req, res, next) {
   var directoryPath = path.join(__dirname, '../public/capturedphotos/');
-  var jSonF = JSON.parse('[{}]');
+  var jSonF = JSON.parse('[]');
   fs.readdir(directoryPath, function (err, files) {
     //handling error
     if (err) {
