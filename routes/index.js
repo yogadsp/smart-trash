@@ -90,9 +90,9 @@ function getWaktuSekarang(){
 
   // mendapatkan waktu sekarang
   // '0' agar ada tambahan angka 0 jika terjadi 1 digit, misal 5 => 05
-  let date = ("0" + datObj.getDate()).slice(-2);
+  let date = ("0" + dateObj.getDate()).slice(-2);
   let month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
-  let year = datObj.getFullYear();
+  let year = dateObj.getFullYear();
   let hours = ("0" + dateObj.getHours()).slice(-2);
   let minutes = ("0" + dateObj.getMinutes()).slice(-2);;
   let seconds = ("0" + dateObj.getSeconds()).slice(-2);
