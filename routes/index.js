@@ -20,11 +20,6 @@ router.post('/post', upload.single('file'), function(req, res) {
     if (err) {
       console.log(err);
       res.send(500);
-    } else {
-      res.json({
-        message: 'File uploaded successfully',
-        filename: namaFile + '.jpg'
-      });
     }
   });
 
@@ -46,7 +41,13 @@ router.post('/post', upload.single('file'), function(req, res) {
 
         // mendapatkan value nya saja
         let klas = JSON.parse(tempKlas);
-        console.log("RESPON : " + i['tagName']);
+        console.log("RESPON : " + klas['tagName']);
+
+        res.json({
+          message: 'File uploaded successfully',
+          filename: namaFile + '.jpg',
+          tagName : klas['tagName']
+        });
       }
     });
 
