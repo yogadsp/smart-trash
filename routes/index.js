@@ -10,8 +10,11 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'HTTP RECEIVER' , message : 'This is message'});
 });
 
-router.post('/post', upload.single('file'), function(req, res) {
-  var namaFile = getWaktuSekarang();
+// global variable untuk link gambar
+var namaFile = null;
+
+router.post('/post', upload.single('file'), function(req, res, next) {
+  namaFile = getWaktuSekarang();
 
   // penamaan file dengan mengambil waktu sekarang sampai dengan seconds
   var file = path.join(__dirname, '../public/capturedphotos/', namaFile + '.jpg');
@@ -23,6 +26,8 @@ router.post('/post', upload.single('file'), function(req, res) {
     }
   });
 
+  next()
+}, function(req, res){
   var options = {
     headers:  { 
                 'Prediction-Key': '2f1de063387a4c51b872d84e5fa04cee', 
@@ -32,7 +37,7 @@ router.post('/post', upload.single('file'), function(req, res) {
   
   needle
     .post(  'https://custom-vision-st.cognitiveservices.azure.com/customvision/v3.0/Prediction/861bb24c-ed41-48f7-928f-1febb1da8229/classify/iterations/Iteration1/url',
-            { "Url" : "http://52.163.219.128/capturedphotos/" + namaFile + ".jpg"}, options, function(err, resp) {
+            { "Url" : "http://52.163.219.128/capturedphotos/" + namaFIle + ".jpg"}, options, function(err, resp) {
       if(err){
         console.log("ERROR : " + err);
       } else {
@@ -50,7 +55,6 @@ router.post('/post', upload.single('file'), function(req, res) {
         });
       }
     });
-
 });
 
 router.get('/listphotos', function(req, res, next) {
@@ -69,6 +73,10 @@ router.get('/listphotos', function(req, res, next) {
     });
     res.render('http_se', {ga : jSonF});
   });
+});
+
+router.get('/klasphotos', function(req, res){
+  
 });
 
 function fileTerakhir(callback){
