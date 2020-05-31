@@ -37,7 +37,7 @@ router.post('/post', upload.single('file'), function(req, res, next) {
   
   needle
     .post(  'https://custom-vision-st.cognitiveservices.azure.com/customvision/v3.0/Prediction/861bb24c-ed41-48f7-928f-1febb1da8229/classify/iterations/Iteration1/url',
-            { "Url" : "http://52.163.219.128/capturedphotos/" + namaFIle + ".jpg"}, options, function(err, resp) {
+            { "Url" : "http://52.163.219.128/capturedphotos/" + namaFile + ".jpg"}, options, function(err, resp) {
       if(err){
         console.log("ERROR : " + err);
       } else {
