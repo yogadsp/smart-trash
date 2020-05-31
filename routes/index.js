@@ -79,21 +79,6 @@ router.get('/klasphotos', function(req, res){
   
 });
 
-function fileTerakhir(callback){
-  var directoryPath = path.join(__dirname, '../public/capturedphotos/');
-  var namaFileTerakhir = null;
-  
-  fs.readdir(directoryPath, function (err, files) {
-    //handling error
-    if (err) {
-      return console.log('Unable to scan directory: ' + err);
-    } else {
-      namaFileTerakhir = files[files.length - 1];
-      callback(namaFileTerakhir);
-    }
-  });
-}
-
 function getWaktuSekarang(){
   let dateObj = new Date(Date.now());
 
