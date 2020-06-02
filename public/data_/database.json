@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "kondisi": "",
+    "klasifikasi": "ano",
+    "lokasi": [
+      {
+        "latitude": 0,
+        "longitude": 0
+      }
+    ]
+  }
+]

@@ -1,13 +1,31 @@
 var express = require('express');
 var router = express.Router();
 var multer  = require('multer');
-var fs  = require('fs');
+var fs = require('fs');
 var upload = multer({ dest: '/tmp/'});
 var needle = require('needle');
 var path = require('path');
+var mqtt = require('mqtt');
+var dbFileName = path.join(__dirname, '../public/data_/database.json');
+const dbFile = require(dbFileName);
+
+var opt = {
+  port: 17550,
+  host: 'mqtt://hairdresser.cloudmqtt.com',
+  clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
+  username: 'yoga',
+  password: 'dwiseptana',
+  keepalive: 60,
+  reconnectPeriod: 1000,
+  protocolVersion: 4,
+  clean: true,
+  encoding: 'utf8'
+};
+
+var client = mqtt.connect('mqtt://hairdresser.cloudmqtt.com', opt);
 
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'HTTP RECEIVER' , message : 'This is message'});
+  res.render('index', { title: 'HTTP RECEIVER' , message : 'This is message' , infor : client.connected});
 });
 
 // global variable untuk link gambar
@@ -26,6 +44,7 @@ router.post('/post', upload.single('file'), function(req, res, next) {
     }
   });
 
+  // membuat aksi lanjutan setelah mengeksekusi route /post
   next()
 }, function(req, res){
   var options = {
@@ -34,10 +53,10 @@ router.post('/post', upload.single('file'), function(req, res, next) {
                 'Content-Type'  : 'application/json'
               }
   }
-  
+  // "http://52.163.219.128/capturedphotos/" + namaFile + ".jpg"
   needle
     .post(  'https://custom-vision-st.cognitiveservices.azure.com/customvision/v3.0/Prediction/861bb24c-ed41-48f7-928f-1febb1da8229/classify/iterations/Iteration1/url',
-            { "Url" : "http://52.163.219.128/capturedphotos/" + namaFile + ".jpg"}, options, function(err, resp) {
+            { "Url" : "https://mello.id/wp-content/uploads/2019/10/Sampah-Anorganik.jpg"}, options, function(err, resp) {
       if(err){
         console.log("ERROR : " + err);
       } else {
@@ -47,6 +66,22 @@ router.post('/post', upload.single('file'), function(req, res, next) {
         // mendapatkan value nya saja
         let klas = JSON.parse(tempKlas);
         console.log("RESPON : " + klas['tagName']);
+
+        client.publish('klasif1', klas['tagName'], function() {
+          // res.writeHead(204, { 'Connection': 'keep-alive' });
+          // res.end();
+          dbFile[0].klasifikasi = klas['tagName'];
+
+          // null - represents the replacer function. (in this case we don't want to alter the process)
+          // 2 - represents the spaces to indent.
+          fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
+            if (err) return console.log(err);
+            console.log(JSON.stringify(dbFile));
+            console.log('writing to ' + dbFileName);
+          });
+
+          console.log(klas['tagName'] + ' Published!');
+        });
 
         res.json({
           message: 'File uploaded successfully',
@@ -75,9 +110,9 @@ router.get('/listphotos', function(req, res, next) {
   });
 });
 
-router.get('/klasphotos', function(req, res){
-  
-});
+router.get('/info', function(req, res){
+  res.json({dbFile});
+})
 
 function getWaktuSekarang(){
   let dateObj = new Date(Date.now());
