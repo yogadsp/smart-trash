@@ -9,6 +9,20 @@ var mqtt = require('mqtt');
 var dbFileName = path.join(__dirname, '../public/data_/database.json');
 const dbFile = require(dbFileName);
 
+// AWS Initial Config
+const credJson = require(path.join(__dirname, '../credentials.json'));
+var AWS = require('aws-sdk');
+var creds = new AWS.Credentials(
+  credJson.access_key_id,
+  credJson.secret_access_key,
+  credJson.session_token
+);
+
+AWS.config.update({
+    region: "us-east-1",
+    credentials: creds
+});
+
 var opt = {
   port: 17550,
   host: 'mqtt://hairdresser.cloudmqtt.com',
@@ -32,69 +46,6 @@ router.get('/', function(req, res, next) {
 var namaFile = null;
 
 // POST + classification
-// router.post('/post', upload.single('file'), function(req, res, next) {
-//   namaFile = getWaktuSekarang();
-
-//   // penamaan file dengan mengambil waktu sekarang sampai dengan seconds
-//   var file = path.join(__dirname, '../public/capturedphotos/', namaFile + '.jpg');
-
-//   fs.rename(req.file.path, file, function(err) {
-//     if (err) {
-//       console.log(err);
-//       res.send(500);
-//     }
-//   });
-
-//   // membuat aksi lanjutan setelah mengeksekusi route /post
-//   next()
-// }, function(req, res){
-//   var options = {
-//     headers:  { 
-//                 'Prediction-Key': '2f1de063387a4c51b872d84e5fa04cee', 
-//                 'Content-Type'  : 'application/json'
-//               }
-//   }
-//   // "http://52.163.219.128/capturedphotos/" + namaFile + ".jpg"
-//   needle
-//     .post(  'https://custom-vision-st.cognitiveservices.azure.com/customvision/v3.0/Prediction/861bb24c-ed41-48f7-928f-1febb1da8229/classify/iterations/Iteration1/url',
-//             { "Url" : "https://mello.id/wp-content/uploads/2019/10/Sampah-Anorganik.jpg"}, options, function(err, resp) {
-//       if(err){
-//         console.log("ERROR : " + err);
-//       } else {
-//         // menangkap respon berbentuk json
-//         let tempKlas = JSON.stringify(resp.body.predictions[0]);
-
-//         // mendapatkan value nya saja
-//         let klas = JSON.parse(tempKlas);
-//         console.log("RESPON : " + klas['tagName']);
-
-//         client.publish('klasif1', klas['tagName'], function() {
-//           // res.writeHead(204, { 'Connection': 'keep-alive' });
-//           // res.end();
-//           dbFile[0].klasifikasi = klas['tagName'];
-
-//           // null - represents the replacer function. (in this case we don't want to alter the process)
-//           // 2 - represents the spaces to indent.
-//           fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
-//             if (err) return console.log(err);
-//             console.log(JSON.stringify(dbFile));
-//             console.log('writing to ' + dbFileName);
-//           });
-
-//           console.log(klas['tagName'] + ' Published!');
-//         });
-
-//         res.json({
-//           message: 'File uploaded successfully',
-//           filename: namaFile + '.jpg',
-//           tagName : klas['tagName']
-//         });
-//       }
-//     });
-// });
-
-
-// ====== POST SAJA ========
 router.post('/post', upload.single('file'), function(req, res, next) {
   namaFile = getWaktuSekarang();
 
@@ -105,18 +56,110 @@ router.post('/post', upload.single('file'), function(req, res, next) {
     if (err) {
       console.log(err);
       res.send(500);
-    } else {
-      res.json({
-        message: 'File uploaded successfully',
-        filename: namaFile + '.jpg'
-      });
     }
+  });
+
+  // membuat aksi lanjutan setelah mengeksekusi route /post
+  next()
+}, function(req, res){
+	var fileToRead = path.join(__dirname, '../public/capturedphotos/', namaFile + '.jpg');
+	
+  var rekognition = new AWS.Rekognition();
+
+  fs.readFile(fileToRead, function(err, data) {
+    if (err) throw err; // Fail if the file can't be read.
+
+    let image = data;
+
+    var params = { // parameter untuk detectLabals
+      Image: {
+       Bytes: image
+      }, 
+      MaxLabels: 10, 
+      MinConfidence: 50
+    };
+    
+    rekognition.detectLabels(params, function(err, data) {
+		if (err) { // an error occurred
+			console.log(err, err.stack); 
+		} else { // successful response
+			var listLabel = [];
+			var classification = null;
+			
+			// label list from AWS
+			var listOrganik = ['Apparel', 'Paper', 'Origami', 'Plant', 'Leaf', 'Tree', 'Blossom', 'Paper Towel', 'Tissue', 'Diaper'];
+			var listAnorganik = ['Label', 'Electronics', 'Plastic', 'Plastic Bag', 'Electrical device', 'Switch', 'Accessory', 'Crystal'];
+			
+			var probOrganik = 0;
+			var probAnorganik = 0;
+			var sumConfidenceOrg = 0;
+			var sumConfidenceAno = 0;
+			
+			console.log(data);
+			
+			for(let i=0; i<(data.Labels).length; i++){
+				listLabel[i] = data.Labels[i].Name;
+				
+				for(let j=0; j<listOrganik.length; j++){
+					if(listLabel[i] == listOrganik[j]){
+						probOrganik++;
+						sumConfidenceOrg += data.Labels[i].Confidence;
+					}
+				}
+			
+				for(let k=0; k<listAnorganik.length; k++){
+					if(listLabel[i] == listAnorganik[k]){
+						probAnorganik++;
+						sumConfidenceAno += data.Labels[i].Confidence;
+					}
+				}
+			}
+			
+			let totProbOrganik = sumConfidenceOrg / probOrganik;
+			let totProbAnorganik = sumConfidenceAno / probAnorganik;
+			
+			// avoid NaN value
+			if(probOrganik == 0) totProbOrganik = 0;
+			if(probAnorganik == 0) totProbAnorganik = 0;
+			
+			if(totProbOrganik > totProbAnorganik){
+				console.log('ORGANIK');
+				classification = 'organik';
+			} else if (totProbOrganik == 0 && totProbAnorganik == 0) {
+				console.log('UNDEFINED');
+				classification = 'undefined';
+			} else {
+				console.log('ANORGANIK');
+				classification = 'anorganik';
+			}
+
+		  client.publish('klasif1', classification, function() {
+			dbFile[0].klasifikasi = classification;
+
+			// null - represents the replacer function. (in this case we don't want to alter the process)
+			// 2 - represents the spaces to indent.
+			fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
+			  if (err) return console.log(err);
+			  console.log(JSON.stringify(dbFile));
+			  console.log('writing to ' + dbFileName);
+			});
+
+			console.log(classification + ' Published!');
+		  });
+
+		  res.json({
+			message: 'File uploaded successfully',
+			filename: namaFile + '.jpg',
+			Klasifikasi : classification
+		  });
+		}
+    });
   });
 });
 
 router.get('/listphotos', function(req, res, next) {
   var directoryPath = path.join(__dirname, '../public/capturedphotos/');
-  var jSonF = JSON.parse('[]');
+  var jsonFile = JSON.parse('[]');
 
   fs.readdir(directoryPath, function (err, files) {
     //handling error
@@ -126,9 +169,9 @@ router.get('/listphotos', function(req, res, next) {
     //listing all files using forEach
     files.forEach(function (file) {
         // menambahkan semua gambar ke json
-        jSonF.push({gambar:file});
+        jsonFile.push({gambar:file});
     });
-    res.render('http_se', {ga : jSonF});
+    res.render('http_se', {gambar : jsonFile});
   });
 });
 
