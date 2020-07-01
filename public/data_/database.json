@@ -1,7 +1,12 @@
 [
   {
     "id": 1,
-    "kondisi": "",
+    "kondisi": [
+      {
+        "organik": "penuh",
+        "anorganik": ""
+      }
+    ],
     "klasifikasi": "organik",
     "lokasi": [
       {

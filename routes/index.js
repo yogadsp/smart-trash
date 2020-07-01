@@ -3,7 +3,6 @@ var router = express.Router();
 var multer  = require('multer');
 var fs = require('fs');
 var upload = multer({ dest: '/tmp/'});
-var needle = require('needle');
 var path = require('path');
 var mqtt = require('mqtt');
 var dbFileName = path.join(__dirname, '../public/data_/database.json');
@@ -23,6 +22,7 @@ AWS.config.update({
     credentials: creds
 });
 
+// MQTT Config
 var opt = {
   port: 17550,
   host: 'mqtt://hairdresser.cloudmqtt.com',
@@ -37,6 +37,33 @@ var opt = {
 };
 
 var client = mqtt.connect('mqtt://hairdresser.cloudmqtt.com', opt);
+
+client.on('connect', function () {
+    client.subscribe('kondisi1');
+	console.log('Subscribed kondisi1');
+})
+
+client.on('message', function (topic, message) {
+	console.log(topic.toString());
+	context = message.toString();
+	console.log(context);
+	
+	if(context.indexOf("ano") !== -1){
+		dbFile[0].kondisi[0].anorganik = "penuh";
+		console.log("anorganik!!!");
+	} else if (context.indexOf("org") !== -1){
+		dbFile[0].kondisi[0].organik = "penuh";
+		console.log("organik!!!");
+	}
+	
+	// null - represents the replacer function. (in this case we don't want to alter the process)
+			// 2 - represents the spaces to indent.
+	fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
+		if (err) return console.log(err);
+			console.log(JSON.stringify(dbFile));			  
+			console.log('writing to ' + dbFileName);
+	});
+})
 
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'HTTP RECEIVER' , message : 'This is message' , infor : client.connected});
