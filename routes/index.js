@@ -209,7 +209,7 @@ router.get('/listphotos', function(req, res, next) {
   });
 });
 
-router.post('/tambahInfo', function(req, res){
+router.post('/tambahInfo', function(req, res, next){
 	let lokasi = req.body.lokasi;
   
 	dbFile[0].lokasi = lokasi;
@@ -225,7 +225,7 @@ router.post('/tambahInfo', function(req, res){
 	});
 });
 
-router.post('/editInfo', function(req, res){
+router.post('/editInfo', function(req, res, next){
 	let lokasi = req.body.lokasi;
   
 	dbFile[0].lokasi = lokasi;
@@ -239,7 +239,7 @@ router.post('/editInfo', function(req, res){
 	});
 });
 
-router.get('/hapusInfo', function(req, res){
+router.get('/hapusInfo', function(req, res, next){
 	let lokasi = req.body.lokasi;
   
 	dbFile[0].lokasi = "";
@@ -256,7 +256,7 @@ router.get('/hapusInfo', function(req, res){
   
 });
 
-router.get('/listKotakSampah', function(req, res){
+router.get('/listKotakSampah', function(req, res, next){
   res.json({dbFile});
 });
 
