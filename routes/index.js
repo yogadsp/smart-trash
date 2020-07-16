@@ -5,6 +5,8 @@ var fs = require('fs');
 var upload = multer({ dest: '/tmp/'});
 var path = require('path');
 var mqtt = require('mqtt');
+
+// load file database
 var dbFileName = path.join(__dirname, '../public/data_/database.json');
 const dbFile = require(dbFileName);
 
@@ -17,6 +19,8 @@ var creds = new AWS.Credentials(
   credJson.session_token
 );
 
+// menyesuaikan credential dan region
+// untuk keperluan akses layanan cloud
 AWS.config.update({
     region: "us-east-1",
     credentials: creds
@@ -38,23 +42,22 @@ var opt = {
 
 var client = mqtt.connect('mqtt://hairdresser.cloudmqtt.com', opt);
 
+// fungsi dipanggil saat mqtt konek
 client.on('connect', function () {
     client.subscribe('kondisi1');
 	console.log('Subscribed kondisi1');
 })
 
+// fungsi dipanggil saat mqtt menerima pesan
 client.on('message', function (topic, message) {
+	// menampilkan nama topik
 	console.log(topic.toString());
+	
+	// mengubah isi pesan menjadi string
 	context = message.toString();
 	console.log(context);
 	
-	if(context.indexOf("ano") !== -1){
-		dbFile[0].kondisi[0].anorganik = "penuh";
-		console.log("anorganik!!!");
-	} else if (context.indexOf("org") !== -1){
-		dbFile[0].kondisi[0].organik = "penuh";
-		console.log("organik!!!");
-	}
+	dbFile[0].kondisi = context;
 	
 	// null - represents the replacer function. (in this case we don't want to alter the process)
 			// 2 - represents the spaces to indent.
@@ -63,6 +66,9 @@ client.on('message', function (topic, message) {
 			console.log(JSON.stringify(dbFile));			  
 			console.log('writing to ' + dbFileName);
 	});
+	
+	// memanggil fungsi kirim notifikasi ke smartphone
+	kirimNotif();
 })
 
 router.get('/', function(req, res, next) {
@@ -89,6 +95,7 @@ router.post('/post', upload.single('file'), function(req, res, next) {
   // membuat aksi lanjutan setelah mengeksekusi route /post
   next()
 }, function(req, res){
+	// inisiasi gambar yang baru saja diupload
 	var fileToRead = path.join(__dirname, '../public/capturedphotos/', namaFile + '.jpg');
 	
   var rekognition = new AWS.Rekognition();
@@ -202,14 +209,61 @@ router.get('/listphotos', function(req, res, next) {
   });
 });
 
-router.get('/info', function(req, res){
+router.post('/tambahInfo', function(req, res){
+	let lokasi = req.body.lokasi;
+  
+	dbFile[0].lokasi = lokasi;
+	dbFile[0].id = "1";
+	dbFile[0].kondisi = "Normal";
+
+	// null - represents the replacer function. (in this case we don't want to alter the process)
+	// 2 - represents the spaces to indent.
+	fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
+		if (err) return console.log(err);
+		console.log(JSON.stringify(dbFile));
+		console.log('writing to ' + dbFileName);
+	});
+});
+
+router.post('/editInfo', function(req, res){
+	let lokasi = req.body.lokasi;
+  
+	dbFile[0].lokasi = lokasi;
+
+	// null - represents the replacer function. (in this case we don't want to alter the process)
+	// 2 - represents the spaces to indent.
+	fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
+		if (err) return console.log(err);
+		console.log(JSON.stringify(dbFile));
+		console.log('writing to ' + dbFileName);
+	});
+});
+
+router.get('/hapusInfo', function(req, res){
+	let lokasi = req.body.lokasi;
+  
+	dbFile[0].lokasi = "";
+	dbFile[0].kondisi = "";
+	dbFile[0].id = "";
+
+	// null - represents the replacer function. (in this case we don't want to alter the process)
+	// 2 - represents the spaces to indent.
+	fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
+		if (err) return console.log(err);
+		console.log(JSON.stringify(dbFile));
+		console.log('writing to ' + dbFileName);
+	});
+  
+});
+
+router.get('/listKotakSampah', function(req, res){
   res.json({dbFile});
-})
+});
 
 function getWaktuSekarang(){
-  let dateObj = new Date(Date.now());
-
   // mendapatkan waktu sekarang
+  let dateObj = new Date(Date.now());
+  
   // '0' agar ada tambahan angka 0 jika terjadi 1 digit, misal 5 => 05
   let date = ("0" + dateObj.getDate()).slice(-2);
   let month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
@@ -217,10 +271,51 @@ function getWaktuSekarang(){
   let hours = ("0" + dateObj.getHours()).slice(-2);
   let minutes = ("0" + dateObj.getMinutes()).slice(-2);;
   let seconds = ("0" + dateObj.getSeconds()).slice(-2);
-
+  
+  // digunakan untuk penamaan file gambar agar tidak terjadi duplikasi
   let waktuSekarang = year + month + date + hours + minutes + seconds;
 
   return waktuSekarang;
+};
+
+// inisiasi var admin untuk mengirim notif
+var admin = require("firebase-admin");
+	
+// load konfigurasi dari menu layanan akun pada firebase
+var serviceAccount = require(path.join(__dirname, '../smart-trash-firebase.json'));
+	
+// inisiasi credential service account firebase
+// untuk keperluan push notification
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://smart-trash-db108.firebaseio.com"
+});
+
+// fungsi untuk mengirimkan notifikasi penuh ke smartphone
+function kirimNotif(){
+	// token yang didapat dari smartphone
+	
+	// hp samsung
+	var token = 'c7XIofMtQq6JTlWYeHJ6qD:APA91bHIhmBMBixvgKtDg69FmrjHyGWcA6ELERR45F6HRNQs7l1HfDRbhzlvBBt3Ygo5ugnAEhN5vw2XAPpJzALf8AdNI9fepUG0YOc2MuZFIX4diAkTFdqTq05WAceqi5aaw45JWOLx';
+
+	var message = {
+	  notification : {
+		title: "Notifikasi",
+        body: "Kotak Sampah Penuh"
+	  },
+	  token: token
+	};
+
+	// Send a message to the device corresponding to the provided
+	// registration token.
+	admin.messaging().send(message)
+	  .then((response) => {
+		// Response is a message ID string.
+		console.log('Successfully sent message:', response);
+	  })
+	  .catch((error) => {
+		console.log('Error sending message:', error);
+	  });
 }
 
 module.exports = router;

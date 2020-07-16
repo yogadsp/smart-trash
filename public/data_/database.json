@@ -1,18 +1,8 @@
 [
   {
-    "id": 1,
-    "kondisi": [
-      {
-        "organik": "penuh",
-        "anorganik": ""
-      }
-    ],
+    "id": "",
+    "kondisi": "",
     "klasifikasi": "organik",
-    "lokasi": [
-      {
-        "latitude": 0,
-        "longitude": 0
-      }
-    ]
+    "lokasi": ""
   }
 ]

@@ -1,6 +1,11 @@
 extends layout
 
 block content
+  style(type="text/css").
+    table, th, td {
+      border: 2px black solid;
+    }
+
   h1= title
   p Welcome to #{title}
   p(id="message") #{message}
@@ -9,7 +14,17 @@ block content
   p(id="isiform") #{isiform}
   br
   h2 Images Uploaded
-  p(id="list")
-  - gambar.forEach(function(dat){
-      img(src="/capturedphotos/"+dat.gambar)
-  - }) 
+  
+  table
+    thead
+      tr
+        th Tanggal
+        th Gambar
+    tbody
+      - gambar.forEach(function(dat){
+      tr
+        td 
+          p= dat.gambar
+        td
+          img(src="/capturedphotos/"+dat.gambar)
+      - })
