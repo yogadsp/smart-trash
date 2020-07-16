@@ -210,7 +210,7 @@ router.get('/listphotos', function(req, res, next) {
 });
 
 router.post('/tambahInfo', function(req, res, next){
-	let lokasi = req.body.lokasi;
+	let lokasi = req.lokasi;
   
 	dbFile[0].lokasi = lokasi;
 	dbFile[0].id = "1";
