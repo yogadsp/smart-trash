@@ -120,35 +120,52 @@ router.post('/post', upload.single('file'), function(req, res, next) {
 			var listLabel = [];
 			var classification = null;
 			
-			// label list from AWS
-			var listOrganik = ['Apparel', 'Paper', 'Origami', 'Plant', 'Leaf', 'Tree', 'Blossom', 'Paper Towel', 'Tissue', 'Diaper'];
-			var listAnorganik = ['Label', 'Electronics', 'Plastic', 'Plastic Bag', 'Electrical device', 'Switch', 'Accessory', 'Crystal'];
+			// daftar nama label untuk sampah organik dan sampah anorganik
+			// nama label default dari AWS
+			var listOrganik = ['Apparel', 'Paper', 'Origami', 'Plant', 'Leaf', 'Tree', 'Blossom', 'Paper Towel',
+							   'Tissue', 'Diaper', 'Fruit', 'Cotton', 'Slate'];
+			var listAnorganik = ['Label', 'Electronics', 'Plastic', 'Plastic Bag', 'Electrical device', 'Switch', 
+								 'Accessory', 'Crystal', 'Bottle', 'Drink', 'Mineral Water', 'Beverage'];
 			
+			// inisiasi untuk menampung level confidence dari setiap label
 			var probOrganik = 0;
 			var probAnorganik = 0;
+			
+			// inisiasi untuk menampung jumlah total confidence dari semua label
 			var sumConfidenceOrg = 0;
 			var sumConfidenceAno = 0;
 			
 			console.log(data);
 			
 			for(let i=0; i<(data.Labels).length; i++){
+				// mendapatkan nama label dari respon AWS
 				listLabel[i] = data.Labels[i].Name;
 				
 				for(let j=0; j<listOrganik.length; j++){
+					// mengecek apakah nama label dari AWS ada yang cocok dengan array listOrganik
 					if(listLabel[i] == listOrganik[j]){
+						// probabilitas bertambah 1 jika ada yang cocok
 						probOrganik++;
+						
+						// menghitung total level confidence
 						sumConfidenceOrg += data.Labels[i].Confidence;
 					}
 				}
 			
 				for(let k=0; k<listAnorganik.length; k++){
+					// mengecek apakah nama label dari AWS ada yang cocok dengan array listAnorganik
 					if(listLabel[i] == listAnorganik[k]){
+						// probabilitas bertambah 1 jika ada yang cocok
 						probAnorganik++;
+						
+						// menghitung total level confidence
 						sumConfidenceAno += data.Labels[i].Confidence;
 					}
 				}
 			}
 			
+			// menghitung rata - rata probablilitas
+			// jumlah level confidence dibagi jumlah label
 			let totProbOrganik = sumConfidenceOrg / probOrganik;
 			let totProbAnorganik = sumConfidenceAno / probAnorganik;
 			
@@ -160,8 +177,8 @@ router.post('/post', upload.single('file'), function(req, res, next) {
 				console.log('ORGANIK');
 				classification = 'organik';
 			} else if (totProbOrganik == 0 && totProbAnorganik == 0) {
-				console.log('UNDEFINED');
-				classification = 'undefined';
+				console.log('ANORGANIK');
+				classification = 'anorganik';
 			} else {
 				console.log('ANORGANIK');
 				classification = 'anorganik';
@@ -210,7 +227,7 @@ router.get('/listphotos', function(req, res, next) {
 });
 
 router.post('/tambahInfo', function(req, res, next){
-	let lokasi = req.lokasi;
+	let lokasi = req.body.lokasi;
   
 	dbFile[0].lokasi = lokasi;
 	dbFile[0].id = "1";
@@ -240,8 +257,6 @@ router.post('/editInfo', function(req, res, next){
 });
 
 router.get('/hapusInfo', function(req, res, next){
-	let lokasi = req.body.lokasi;
-  
 	dbFile[0].lokasi = "";
 	dbFile[0].kondisi = "";
 	dbFile[0].id = "";
