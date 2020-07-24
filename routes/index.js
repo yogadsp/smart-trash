@@ -166,8 +166,8 @@ router.post('/post', upload.single('file'), function(req, res, next) {
 			
 			// menghitung rata - rata probablilitas
 			// jumlah level confidence dibagi jumlah label
-			let totProbOrganik = sumConfidenceOrg / probOrganik;
-			let totProbAnorganik = sumConfidenceAno / probAnorganik;
+			let totProbOrganik = sumConfidenceOrg;
+			let totProbAnorganik = sumConfidenceAno;
 			
 			// avoid NaN value
 			if(probOrganik == 0) totProbOrganik = 0;
