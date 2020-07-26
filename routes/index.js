@@ -54,10 +54,10 @@ client.on('message', function (topic, message) {
 	console.log(topic.toString());
 	
 	// mengubah isi pesan menjadi string
-	context = message.toString();
-	console.log(context);
+	isiPesan = message.toString();
+	console.log(isiPesan);
 	
-	dbFile[0].kondisi = context;
+	dbFile[0].kondisi = isiPesan;
 	
 	// null - represents the replacer function. (in this case we don't want to alter the process)
 			// 2 - represents the spaces to indent.
@@ -67,8 +67,10 @@ client.on('message', function (topic, message) {
 			console.log('writing to ' + dbFileName);
 	});
 	
-	// memanggil fungsi kirim notifikasi ke smartphone
-	kirimNotif();
+	// memanggil fungsi kirim notifikasi ke smartphone jika kotak sampah penuh
+	if(isiPesan == "Penuh"){
+		kirimNotif();
+	}
 })
 
 router.get('/', function(req, res, next) {
