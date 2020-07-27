@@ -53,23 +53,25 @@ client.on('message', function (topic, message) {
 	// menampilkan nama topik
 	console.log(topic.toString());
 	
-	// mengubah isi pesan menjadi string
-	isiPesan = message.toString();
-	console.log(isiPesan);
+	if(dbFile[0].id != ""){
+		// mengubah isi pesan menjadi string
+		isiPesan = message.toString();
+		console.log(isiPesan);
+		
+		dbFile[0].kondisi = isiPesan;
 	
-	dbFile[0].kondisi = isiPesan;
-	
-	// null - represents the replacer function. (in this case we don't want to alter the process)
-			// 2 - represents the spaces to indent.
-	fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
-		if (err) return console.log(err);
-			console.log(JSON.stringify(dbFile));			  
-			console.log('writing to ' + dbFileName);
-	});
-	
-	// memanggil fungsi kirim notifikasi ke smartphone jika kotak sampah penuh
-	if(isiPesan == "Penuh"){
-		kirimNotif();
+		// null - represents the replacer function. (in this case we don't want to alter the process)
+		// 2 - represents the spaces to indent.
+		fs.writeFile(dbFileName, JSON.stringify(dbFile, null, 2), function writeJSON(err) {
+			if (err) return console.log(err);
+				console.log(JSON.stringify(dbFile));			  
+				console.log('writing to ' + dbFileName);
+		});
+		
+		// memanggil fungsi kirim notifikasi ke smartphone jika kotak sampah penuh
+		if(isiPesan == "Penuh"){
+			kirimNotif();
+		}
 	}
 })
 
