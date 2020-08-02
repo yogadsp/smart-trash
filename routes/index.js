@@ -126,10 +126,12 @@ router.post('/post', upload.single('file'), function(req, res, next) {
 			
 			// daftar nama label untuk sampah organik dan sampah anorganik
 			// nama label default dari AWS
-			var listOrganik = ['Apparel', 'Paper', 'Origami', 'Plant', 'Leaf', 'Tree', 'Blossom', 'Paper Towel',
-							   'Tissue', 'Diaper', 'Fruit', 'Cotton', 'Slate'];
+			var listOrganik = ['Paper', 'Origami', 'Plant', 'Leaf', 'Tree', 'Blossom', 'Paper Towel',
+							   'Tissue', 'Diaper', 'Fruit', 'Cotton', 'Slate', 'Nature', 'Foil',
+							   'Vegetable', 'Food', 'Insect', 'Invertebrate', 'Land', 'Animal'];
 			var listAnorganik = ['Label', 'Electronics', 'Plastic', 'Plastic Bag', 'Electrical device', 'Switch', 
-								 'Accessory', 'Crystal', 'Bottle', 'Drink', 'Mineral Water', 'Beverage', 'Vehicle'];
+								 'Accessory', 'Crystal', 'Bottle', 'Drink', 'Mineral Water', 'Beverage', 'Ice',
+								 'Ocean', 'Rock', 'Sea', 'Weapon', 'Text'];
 			
 			// inisiasi untuk menampung level confidence dari setiap label
 			var probOrganik = 0;
@@ -168,7 +170,7 @@ router.post('/post', upload.single('file'), function(req, res, next) {
 				}
 			}
 			
-			// menghitung rata - rata probablilitas
+			// menghitung total probablilitas
 			// jumlah level confidence dibagi jumlah label
 			let totProbOrganik = sumConfidenceOrg;
 			let totProbAnorganik = sumConfidenceAno;
