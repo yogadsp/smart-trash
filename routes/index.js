@@ -130,8 +130,8 @@ router.post('/post', upload.single('file'), function(req, res, next) {
 							   'Tissue', 'Diaper', 'Fruit', 'Cotton', 'Slate', 'Nature', 'Foil',
 							   'Vegetable', 'Food', 'Insect', 'Invertebrate', 'Land', 'Animal'];
 			var listAnorganik = ['Label', 'Electronics', 'Plastic', 'Plastic Bag', 'Electrical device', 'Switch', 
-								 'Accessory', 'Crystal', 'Bottle', 'Drink', 'Mineral Water', 'Beverage', 'Ice',
-								 'Ocean', 'Rock', 'Sea', 'Weapon', 'Text'];
+								 'Accessory', 'Crystal', 'Bottle', 'Drink', 'Mineral Water', 'Beverage',
+								 'Rock', 'Weapon', 'Text'];
 			
 			// inisiasi untuk menampung level confidence dari setiap label
 			var probOrganik = 0;
