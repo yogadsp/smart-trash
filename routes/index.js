@@ -29,10 +29,10 @@ AWS.config.update({
 // MQTT Config
 var opt = {
   port: 17550,
-  host: 'mqtt://hairdresser.cloudmqtt.com',
+  host: '',
   clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
-  username: 'yoga',
-  password: 'dwiseptana',
+  username: '',
+  password: '',
   keepalive: 60,
   reconnectPeriod: 1000,
   protocolVersion: 4,
@@ -40,7 +40,8 @@ var opt = {
   encoding: 'utf8'
 };
 
-var client = mqtt.connect('mqtt://hairdresser.cloudmqtt.com', opt);
+// mqtt.connect(host, extra config)
+var client = mqtt.connect('', opt);
 
 // fungsi dipanggil saat mqtt konek
 client.on('connect', function () {
@@ -76,7 +77,7 @@ client.on('message', function (topic, message) {
 })
 
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'HTTP RECEIVER' , message : 'This is message' , infor : client.connected});
+  res.render('index', { title: 'Smart Trash Web Server' , infor : client.connected});
 });
 
 // global variable untuk link gambar
@@ -228,7 +229,7 @@ router.get('/listphotos', function(req, res, next) {
         // menambahkan semua gambar ke json
         jsonFile.push({gambar:file});
     });
-    res.render('http_se', {gambar : jsonFile});
+    res.render('photos', {gambar : jsonFile});
   });
 });
 
@@ -309,15 +310,13 @@ var serviceAccount = require(path.join(__dirname, '../smart-trash-firebase.json'
 // untuk keperluan push notification
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://smart-trash-db108.firebaseio.com"
+  databaseURL: ""
 });
 
 // fungsi untuk mengirimkan notifikasi penuh ke smartphone
 function kirimNotif(){
 	// token yang didapat dari smartphone
-	
-	// hp samsung
-	var token = 'c7XIofMtQq6JTlWYeHJ6qD:APA91bHIhmBMBixvgKtDg69FmrjHyGWcA6ELERR45F6HRNQs7l1HfDRbhzlvBBt3Ygo5ugnAEhN5vw2XAPpJzALf8AdNI9fepUG0YOc2MuZFIX4diAkTFdqTq05WAceqi5aaw45JWOLx';
+	var token = '';
 
 	var message = {
 	  notification : {
